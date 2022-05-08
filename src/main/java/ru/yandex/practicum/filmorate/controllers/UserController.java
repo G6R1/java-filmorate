@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,26 +24,27 @@ public class UserController {
         return new ArrayList<>(users.values());
     }
 
-    @PostMapping("/user")
+    @PostMapping("/users")
     public User createUser(@RequestBody User user) throws UserValidationException {
         if (!userValidation(user)) {
             log.info("Ошибка создания: некорректные данные о пользователе.");
             throw new UserValidationException("Ошибка: проверьте корректность данных о пользователе.");
         }
-        users.put(user.getId(), user);
+        users.put(user.getId(), setNameIfNameIsBlank(user));
         log.info("Выполнен запрос createUser. Текущее количество пользователей: " + users.size());
-        return user;
+        return setNameIfNameIsBlank(user);
     }
 
-    @PutMapping("/user")
+    @PutMapping("/users")
     public User updateUser(@RequestBody User user) throws UserValidationException {
         if (!userValidation(user)) {
             log.info("Ошибка обновления: некорректные данные о пользователе.");
             throw new UserValidationException("Ошибка: проверьте корректность данных о пользователе.");
         }
-        users.put(user.getId(), user);
+
+        users.put(user.getId(), setNameIfNameIsBlank(user));
         log.info("Выполнен запрос updateUser.");
-        return user;
+        return setNameIfNameIsBlank(user);
     }
 
 
@@ -58,14 +60,28 @@ public class UserController {
     private boolean userValidation(User user) {
         if (user.getEmail().isBlank() || !user.getEmail().contains("@")
             || user.getLogin().isBlank() || user.getLogin().contains(" ")
-            || user.getBirthday().isAfter(Instant.now())) {
+            || user.getName() == null
+            || user.getBirthday().isAfter(LocalDate.now())) {
             return false;
         }
-
-        if (user.getName().isBlank())
-            user.setName(user.getEmail());
-
         return true;
+    }
+
+
+    /**
+     * Если имя имя для отображения User пустое, будет использован логин.
+     * @param user объект для проверки.
+     * @return Объект User с не пустым именем.
+     */
+    private User setNameIfNameIsBlank(User user) {
+        if (user.getName().isBlank()) {
+            return new User(user.getId(),
+                            user.getEmail(),
+                            user.getLogin(),
+                            user.getLogin(),
+                            user.getBirthday());
+        }
+        return user;
     }
 }
 /*

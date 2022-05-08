@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.*;
 
 @RestController
@@ -16,12 +17,12 @@ public class FilmController {
     private final static Logger log = LoggerFactory.getLogger(FilmController.class);
     Map<Long, Film> films = new HashMap<>();
 
-    @GetMapping
+    @GetMapping("/films")
     public List<Film> findAllFilms() {
         return new ArrayList<>(films.values());
     }
 
-    @PostMapping
+    @PostMapping("/films")
     public Film createFilm(@RequestBody Film film) throws FilmValidationException {
         if (!filmValidation(film)) {
             log.info("Ошибка создания: некорректные данные о фильме.");
@@ -32,7 +33,7 @@ public class FilmController {
         return film;
     }
 
-    @PutMapping
+    @PutMapping("/films")
     public Film updateFilm(@RequestBody Film film) throws FilmValidationException {
         if (!filmValidation(film)) {
             log.info("Ошибка обновления: некорректные данные о фильме.");
@@ -54,8 +55,8 @@ public class FilmController {
      */
     private boolean filmValidation(Film film) {
         if (film.getName().isBlank()
-            || film.getDescription().length() > 200
-            || film.getReleaseDate().isBefore(Instant.ofEpochSecond(-2335564800L))
+            || film.getDescription().length() > 200 || film.getDescription().isBlank()
+            || film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))
             || film.getDuration().toMillis() <= 0) {
             return false;
         }
