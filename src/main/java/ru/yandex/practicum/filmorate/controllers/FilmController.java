@@ -26,7 +26,7 @@ public class FilmController {
     public Film createFilm(@RequestBody Film film) throws FilmValidationException {
         if (!filmValidation(film)) {
             log.info("Ошибка создания: некорректные данные о фильме.");
-            throw new FilmValidationException("Ошибка: проверьте корректность данных о фильме.");
+            throw new FilmValidationException();
         }
         films.put(film.getId(), film);
         log.info("Выполнен запрос createFilm. Текущее количество фильмов: " + films.size());
@@ -37,7 +37,7 @@ public class FilmController {
     public Film updateFilm(@RequestBody Film film) throws FilmValidationException {
         if (!filmValidation(film)) {
             log.info("Ошибка обновления: некорректные данные о фильме.");
-            throw new FilmValidationException("Ошибка: проверьте корректность данных о фильме.");
+            throw new FilmValidationException();
         }
         films.put(film.getId(), film);
         log.info("Выполнен запрос updateFilm.");

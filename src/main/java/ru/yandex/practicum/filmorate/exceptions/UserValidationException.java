@@ -1,11 +1,8 @@
 package ru.yandex.practicum.filmorate.exceptions;
 
-public class UserValidationException extends Exception{
+public class UserValidationException extends ValidationException{
 
     public UserValidationException() {
-    }
-
-    public UserValidationException(final String message) {
-        super(message);
+        super("Incorrect user data.");
     }
 }

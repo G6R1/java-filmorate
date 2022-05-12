@@ -28,7 +28,7 @@ public class UserController {
     public User createUser(@RequestBody User user) throws UserValidationException {
         if (!userValidation(user)) {
             log.info("Ошибка создания: некорректные данные о пользователе.");
-            throw new UserValidationException("Ошибка: проверьте корректность данных о пользователе.");
+            throw new UserValidationException();
         }
         users.put(user.getId(), setNameIfNameIsBlank(user));
         log.info("Выполнен запрос createUser. Текущее количество пользователей: " + users.size());
@@ -39,7 +39,7 @@ public class UserController {
     public User updateUser(@RequestBody User user) throws UserValidationException {
         if (!userValidation(user)) {
             log.info("Ошибка обновления: некорректные данные о пользователе.");
-            throw new UserValidationException("Ошибка: проверьте корректность данных о пользователе.");
+            throw new UserValidationException();
         }
 
         users.put(user.getId(), setNameIfNameIsBlank(user));

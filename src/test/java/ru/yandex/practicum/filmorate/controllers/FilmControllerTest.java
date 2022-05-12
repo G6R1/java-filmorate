@@ -30,18 +30,38 @@ class FilmControllerTest {
     MockMvc mockMvc;
 
     @ParameterizedTest
-    @MethodSource("argsProviderFactory")
-    void filmValidationTest(Film film) throws Exception {
+    @MethodSource("validObjectFactory")
+    void filmValidationOkTest(Film film) throws Exception {
         this.mockMvc.perform(post("/films")
                         .content(mapper.writeValueAsString(film))
                         .contentType("application/json"))
                 .andExpect(status().isOk());
     }
 
+    @ParameterizedTest
+    @MethodSource("invalidObjectFactory")
+    void filmValidationNotOkTest(Film film) throws Exception {
+        this.mockMvc.perform(post("/films")
+                        .content(mapper.writeValueAsString(film))
+                        .contentType("application/json"))
+                .andExpect(status().isBadRequest());
+    }
 
-    static Stream<Film> argsProviderFactory() {
+    static Stream<Film> validObjectFactory() {
         return Stream.of(
-            new Film(12L, "Oreshek", "Big boy", LocalDate.of(1999,3,23), Duration.ofSeconds(12345))
+            new Film(12L, "Oreshek", "Big boy", LocalDate.of(1999,1,1), Duration.ofSeconds(123)),
+            new Film(12L, "Oreshek", "Big boy", LocalDate.of(1895,12,28), Duration.ofSeconds(123)),
+            new Film(12L, "Oreshek", "Big boy", LocalDate.of(1999,1,1), Duration.ofSeconds(1))
+        );
+    }
+
+    static Stream<Film> invalidObjectFactory() {
+        return Stream.of(
+                new Film(1L, "", "Empty name", LocalDate.of(1999,1,1), Duration.ofSeconds(123)),
+                new Film(2L, "Empty description", "", LocalDate.of(1999,1,1), Duration.ofSeconds(123)),
+                new Film(3L, "Description 200+", "Sddnvlkdshfvskdjfksikhfunsdcwjhikjemkfjdsjvfisjnvujshosiufhiuerhfpoerjfverbvefddfshfslnfsnvofedhvuofshjmochdlhdjmcfjdbmgkdjdgfjcmdgfjhdvkfjgfhgfgfdgfvvtvrwvcgsvcgvcsfdchcgfcxhwfuxngbgbfdvgsvfjhgvhfdbdsss", LocalDate.of(1999,1,1), Duration.ofSeconds(123)),
+                new Film(4L, "Date", "Date is before 28.12.1895", LocalDate.of(1895,12,27), Duration.ofSeconds(123)),
+                new Film(4L, "Duration", "Duration is zero", LocalDate.of(1895,12,27), Duration.ofSeconds(0))
         );
     }
 }

@@ -1,11 +1,8 @@
 package ru.yandex.practicum.filmorate.exceptions;
 
-public class FilmValidationException  extends  Exception{
+public class FilmValidationException extends ValidationException {
 
     public FilmValidationException() {
-    }
-
-    public FilmValidationException(final String message) {
-        super(message);
+        super("Incorrect film data.");
     }
 }
