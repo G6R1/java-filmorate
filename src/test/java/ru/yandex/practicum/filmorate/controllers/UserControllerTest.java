@@ -49,18 +49,18 @@ class UserControllerTest {
 
     static Stream<User> validObjectFactory() {
         return Stream.of(
-                new User(11L, "mail@mail.ru", "logy", "Bob", LocalDate.of(1999,3,23)),
-                new User(11L, "mail@mail.ru", "Empty_name", "", LocalDate.of(1999,3,23))
+                new User(null, "mail@mail.ru", "logy", "Bob", LocalDate.of(1999,3,23)),
+                new User(null, "mail@mail.ru", "Empty_name", "", LocalDate.of(1999,3,23))
         );
     }
 
     static Stream<User> invalidObjectFactory() {
         return Stream.of(
-                new User(11L, "", "login", "Empty_mail", LocalDate.of(1999,3,23)),
-                new User(11L, "mail!mail.ru", "login", "Mail_without_@", LocalDate.of(1999,3,23)),
-                new User(11L, "mail@mail.ru", "", "Empty_login", LocalDate.of(1999,3,23)),
-                new User(11L, "mail@mail.ru", "Lo Gy", "Login_with_space", LocalDate.of(1999,3,23)),
-                new User(11L, "mail@mail.ru", "login", "In_future", LocalDate.of(2999,3,23))
+                new User(null, "", "login", "Empty_mail", LocalDate.of(1999,3,23)),
+                new User(null, "mail!mail.ru", "login", "Mail_without_@", LocalDate.of(1999,3,23)),
+                new User(null, "mail@mail.ru", "", "Empty_login", LocalDate.of(1999,3,23)),
+                new User(null, "mail@mail.ru", "Lo Gy", "Login_with_space", LocalDate.of(1999,3,23)),
+                new User(null, "mail@mail.ru", "login", "In_future", LocalDate.of(2999,3,23))
         );
     }
 }

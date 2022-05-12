@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.exceptions.UserValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ public class UserController {
 
     private final static Logger log = LoggerFactory.getLogger(UserController.class);
     Map<Long, User> users = new HashMap<>();
+    private Long idCounter = 1L;
 
     @GetMapping("/users")
     public List<User> findAllUsers() {
@@ -25,19 +27,21 @@ public class UserController {
     }
 
     @PostMapping("/users")
-    public User createUser(@RequestBody User user) throws UserValidationException {
-        if (!userValidation(user)) {
+    public User createUser(@Valid @RequestBody User user) throws UserValidationException {
+        if (user.getId() != null) {
             log.info("Ошибка создания: некорректные данные о пользователе.");
             throw new UserValidationException();
         }
-        users.put(user.getId(), setNameIfNameIsBlank(user));
+
+        User userForSave = setNameIfNameIsBlank(setId(user));
+        users.put(userForSave.getId(), userForSave);
         log.info("Выполнен запрос createUser. Текущее количество пользователей: " + users.size());
-        return setNameIfNameIsBlank(user);
+        return userForSave;
     }
 
     @PutMapping("/users")
-    public User updateUser(@RequestBody User user) throws UserValidationException {
-        if (!userValidation(user)) {
+    public User updateUser(@Valid @RequestBody User user) throws UserValidationException {
+        if (user.getId() == null) {
             log.info("Ошибка обновления: некорректные данные о пользователе.");
             throw new UserValidationException();
         }
@@ -46,27 +50,6 @@ public class UserController {
         log.info("Выполнен запрос updateUser.");
         return setNameIfNameIsBlank(user);
     }
-
-
-    /**
-     * Проверяет объект User на соответствие критериям:
-     *  электронная почта не может быть пустой и должна содержать символ @;
-     *  логин не может быть пустым и содержать пробелы;
-     *  имя для отображения может быть пустым — в таком случае будет использован логин;
-     *  дата рождения не может быть в будущем.
-     * @param user проверяемый объект.
-     * @return результат валидации.
-     */
-    private boolean userValidation(User user) {
-        if (user.getEmail().isBlank() || !user.getEmail().contains("@")
-            || user.getLogin().isBlank() || user.getLogin().contains(" ")
-            || user.getName() == null
-            || user.getBirthday().isAfter(LocalDate.now())) {
-            return false;
-        }
-        return true;
-    }
-
 
     /**
      * Если имя имя для отображения User пустое, будет использован логин.
@@ -82,6 +65,15 @@ public class UserController {
                             user.getBirthday());
         }
         return user;
+    }
+
+    /**
+     * Задает id новому пользователю.
+     * @param user User с id == null
+     * @return User с заданным id.
+     */
+    private User setId(User user) {
+        return new User(idCounter++, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
     }
 }
 /*

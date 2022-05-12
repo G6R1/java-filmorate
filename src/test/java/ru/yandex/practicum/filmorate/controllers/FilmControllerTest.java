@@ -49,19 +49,19 @@ class FilmControllerTest {
 
     static Stream<Film> validObjectFactory() {
         return Stream.of(
-            new Film(12L, "Oreshek", "Big boy", LocalDate.of(1999,1,1), Duration.ofSeconds(123)),
-            new Film(12L, "Oreshek", "Big boy", LocalDate.of(1895,12,28), Duration.ofSeconds(123)),
-            new Film(12L, "Oreshek", "Big boy", LocalDate.of(1999,1,1), Duration.ofSeconds(1))
+            new Film(null, "Oreshek", "Big boy", LocalDate.of(1999,1,1), Duration.ofSeconds(123)),
+            new Film(null, "Oreshek", "Big boy", LocalDate.of(1895,12,28), Duration.ofSeconds(123)),
+            new Film(null, "Oreshek", "Big boy", LocalDate.of(1999,1,1), Duration.ofSeconds(1))
         );
     }
 
     static Stream<Film> invalidObjectFactory() {
         return Stream.of(
-                new Film(1L, "", "Empty name", LocalDate.of(1999,1,1), Duration.ofSeconds(123)),
-                new Film(2L, "Empty description", "", LocalDate.of(1999,1,1), Duration.ofSeconds(123)),
-                new Film(3L, "Description 200+", "Sddnvlkdshfvskdjfksikhfunsdcwjhikjemkfjdsjvfisjnvujshosiufhiuerhfpoerjfverbvefddfshfslnfsnvofedhvuofshjmochdlhdjmcfjdbmgkdjdgfjcmdgfjhdvkfjgfhgfgfdgfvvtvrwvcgsvcgvcsfdchcgfcxhwfuxngbgbfdvgsvfjhgvhfdbdsss", LocalDate.of(1999,1,1), Duration.ofSeconds(123)),
-                new Film(4L, "Date", "Date is before 28.12.1895", LocalDate.of(1895,12,27), Duration.ofSeconds(123)),
-                new Film(4L, "Duration", "Duration is zero", LocalDate.of(1895,12,27), Duration.ofSeconds(0))
+                new Film(null, "", "Empty name", LocalDate.of(1999,1,1), Duration.ofSeconds(123)),
+                new Film(null, "Empty description", "", LocalDate.of(1999,1,1), Duration.ofSeconds(123)),
+                new Film(null, "Description 200+", "Sddnvlkdshfvskdjfksikhfunsdcwjhikjemkfjdsjvfisjnvujshosiufhiuerhfpoerjfverbvefddfshfslnfsnvofedhvuofshjmochdlhdjmcfjdbmgkdjdgfjcmdgfjhdvkfjgfhgfgfdgfvvtvrwvcgsvcgvcsfdchcgfcxhwfuxngbgbfdvgsvfjhgvhfdbdsss", LocalDate.of(1999,1,1), Duration.ofSeconds(123)),
+                new Film(null, "Date", "Date is before 28.12.1895", LocalDate.of(1895,12,27), Duration.ofSeconds(123)),
+                new Film(null, "Duration", "Duration is zero", LocalDate.of(1895,12,27), Duration.ofSeconds(0))
         );
     }
 }
