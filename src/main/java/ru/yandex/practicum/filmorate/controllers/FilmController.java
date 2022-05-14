@@ -12,35 +12,35 @@ import java.util.*;
 @RestController
 @Slf4j
 @RequestMapping("/films")
-public class FilmController {
+public class FilmController extends AbstractController<Long, Film>{
 
-    Map<Long, Film> films = new HashMap<>();
     private Long idCounter = 1L;
 
-    @GetMapping()
-    public List<Film> findAllFilms() {
-        return new ArrayList<>(films.values());
+    public FilmController() {
+        super(new HashMap<>());
     }
 
+    @Override
     @PostMapping()
-    public Film createFilm(@Valid @RequestBody Film film) throws FilmValidationException {
+    public Film create(@Valid @RequestBody Film film) throws FilmValidationException {
         if (!filmValidation(film) || film.getId() != null) {
             log.info("Ошибка создания: некорректные данные о фильме.");
             throw new FilmValidationException();
         }
         Film filmForSave = setId(film);
-        films.put(filmForSave.getId(), filmForSave);
-        log.info("Выполнен запрос createFilm. Текущее количество фильмов: " + films.size());
+        resourceStorage.put(filmForSave.getId(), filmForSave);
+        log.info("Выполнен запрос createFilm. Текущее количество фильмов: " + resourceStorage.size());
         return filmForSave;
     }
 
+    @Override
     @PutMapping()
-    public Film updateFilm(@Valid @RequestBody Film film) throws FilmValidationException {
+    public Film update(@Valid @RequestBody Film film) throws FilmValidationException {
         if (!filmValidation(film) || film.getId() == null) {
             log.info("Ошибка обновления: некорректные данные о фильме.");
             throw new FilmValidationException();
         }
-        films.put(film.getId(), film);
+        resourceStorage.put(film.getId(), film);
         log.info("Выполнен запрос updateFilm.");
         return film;
     }
@@ -56,11 +56,8 @@ public class FilmController {
      * @return результат валидации.
      */
     private boolean filmValidation(Film film) {
-        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))
-                || film.getDuration().toMillis() <= 0) {
-            return false;
-        }
-        return true;
+        return !film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))
+                && film.getDuration().toMillis() > 0;
     }
 
     /**
