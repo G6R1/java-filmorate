@@ -1,15 +1,15 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.Data;
+import lombok.*;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDate;
 
-@Data//builder?
+@Getter
+@RequiredArgsConstructor
+@ToString
 public class Film {
     final private Long id;
     @NotBlank

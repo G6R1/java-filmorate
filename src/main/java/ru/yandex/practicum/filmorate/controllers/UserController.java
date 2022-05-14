@@ -1,32 +1,30 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.exceptions.UserValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RestController
+@Slf4j
+@RequestMapping("/users")
 public class UserController {
 
-    private final static Logger log = LoggerFactory.getLogger(UserController.class);
     Map<Long, User> users = new HashMap<>();
     private Long idCounter = 1L;
 
-    @GetMapping("/users")
+    @GetMapping()
     public List<User> findAllUsers() {
         return new ArrayList<>(users.values());
     }
 
-    @PostMapping("/users")
+    @PostMapping()
     public User createUser(@Valid @RequestBody User user) throws UserValidationException {
         if (user.getId() != null) {
             log.info("Ошибка создания: некорректные данные о пользователе.");
@@ -39,7 +37,7 @@ public class UserController {
         return userForSave;
     }
 
-    @PutMapping("/users")
+    @PutMapping()
     public User updateUser(@Valid @RequestBody User user) throws UserValidationException {
         if (user.getId() == null) {
             log.info("Ошибка обновления: некорректные данные о пользователе.");

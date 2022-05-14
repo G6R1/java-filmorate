@@ -1,31 +1,28 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.exceptions.FilmValidationException;
-import ru.yandex.practicum.filmorate.exceptions.UserValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 
 @RestController
+@Slf4j
+@RequestMapping("/films")
 public class FilmController {
 
-    private final static Logger log = LoggerFactory.getLogger(FilmController.class);
     Map<Long, Film> films = new HashMap<>();
     private Long idCounter = 1L;
 
-    @GetMapping("/films")
+    @GetMapping()
     public List<Film> findAllFilms() {
         return new ArrayList<>(films.values());
     }
 
-    @PostMapping("/films")
+    @PostMapping()
     public Film createFilm(@Valid @RequestBody Film film) throws FilmValidationException {
         if (!filmValidation(film) || film.getId() != null) {
             log.info("Ошибка создания: некорректные данные о фильме.");
@@ -37,7 +34,7 @@ public class FilmController {
         return filmForSave;
     }
 
-    @PutMapping("/films")
+    @PutMapping()
     public Film updateFilm(@Valid @RequestBody Film film) throws FilmValidationException {
         if (!filmValidation(film) || film.getId() == null) {
             log.info("Ошибка обновления: некорректные данные о фильме.");
