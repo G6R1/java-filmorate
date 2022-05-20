@@ -1,23 +1,35 @@
 package ru.yandex.practicum.filmorate.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import ru.yandex.practicum.filmorate.exceptions.UserValidationException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import javax.validation.Valid;
 import java.util.HashMap;
+import java.util.List;
 
 
 @RestController
 @Slf4j
 @RequestMapping("/users")
-public class UserController extends AbstractController<Long, User>{
+public class UserController extends AbstractController<User>{
 
-    private Long idCounter = 1L;
+    UserStorage storage;
 
-    public UserController() {
-        super(new HashMap<>());
+    @Autowired
+    public UserController(UserStorage storage) {
+        this.storage = storage;
+    }
+
+    @Override
+    @GetMapping()
+    public List<User> findAll() {
+        return storage.findAll();
     }
 
     @Override
@@ -28,9 +40,8 @@ public class UserController extends AbstractController<Long, User>{
             throw new UserValidationException();
         }
 
-        User userForSave = setNameIfNameIsBlank(setId(user));
-        resourceStorage.put(userForSave.getId(), userForSave);
-        log.info("Выполнен запрос createUser. Текущее количество пользователей: " + resourceStorage.size());
+        User userForSave = storage.create(user);
+        log.info("Выполнен запрос createUser. Текущее количество пользователей: " + storage.findAll().size());
         return userForSave;
     }
 
@@ -42,33 +53,8 @@ public class UserController extends AbstractController<Long, User>{
             throw new UserValidationException();
         }
 
-        resourceStorage.put(user.getId(), setNameIfNameIsBlank(user));
+        User userForSave = storage.update(user);
         log.info("Выполнен запрос updateUser.");
-        return setNameIfNameIsBlank(user);
-    }
-
-    /**
-     * Если имя имя для отображения User пустое, будет использован логин.
-     * @param user объект для проверки.
-     * @return Объект User с не пустым именем.
-     */
-    private User setNameIfNameIsBlank(User user) {
-        if (user.getName().isBlank()) {
-            return new User(user.getId(),
-                            user.getEmail(),
-                            user.getLogin(),
-                            user.getLogin(),
-                            user.getBirthday());
-        }
-        return user;
-    }
-
-    /**
-     * Задает id новому пользователю.
-     * @param user User с id == null
-     * @return User с заданным id.
-     */
-    private User setId(User user) {
-        return new User(idCounter++, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
+        return userForSave;
     }
 }

@@ -10,18 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractController<K, V> {
-
-    Map<K, V> resourceStorage;
-
-    public AbstractController(Map map) {
-        resourceStorage = map;
-    }
+public abstract class AbstractController<V> {
 
     @GetMapping()
-    public List<V> findAll() {
-        return new ArrayList<>(resourceStorage.values());
-    }
+    public abstract List<V> findAll();
 
     @PostMapping()
     public abstract V create(@Valid @RequestBody V v);

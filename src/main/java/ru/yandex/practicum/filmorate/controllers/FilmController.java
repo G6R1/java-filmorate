@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import ru.yandex.practicum.filmorate.exceptions.FilmValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
@@ -12,12 +14,18 @@ import java.util.*;
 @RestController
 @Slf4j
 @RequestMapping("/films")
-public class FilmController extends AbstractController<Long, Film>{
+public class FilmController extends AbstractController<Film>{
+    FilmStorage storage;
 
-    private Long idCounter = 1L;
+    @Autowired
+    public FilmController (FilmStorage storage) {
+        this.storage = storage;
+    }
 
-    public FilmController() {
-        super(new HashMap<>());
+    @Override
+    @GetMapping()
+    public List<Film> findAll() {
+        return storage.findAll();
     }
 
     @Override
@@ -27,9 +35,8 @@ public class FilmController extends AbstractController<Long, Film>{
             log.info("Ошибка создания: некорректные данные о фильме.");
             throw new FilmValidationException();
         }
-        Film filmForSave = setId(film);
-        resourceStorage.put(filmForSave.getId(), filmForSave);
-        log.info("Выполнен запрос createFilm. Текущее количество фильмов: " + resourceStorage.size());
+        Film filmForSave = storage.create(film);
+        log.info("Выполнен запрос createFilm. Текущее количество фильмов: " + storage.findAll().size());
         return filmForSave;
     }
 
@@ -40,9 +47,9 @@ public class FilmController extends AbstractController<Long, Film>{
             log.info("Ошибка обновления: некорректные данные о фильме.");
             throw new FilmValidationException();
         }
-        resourceStorage.put(film.getId(), film);
+        Film filmForSave = storage.update(film);
         log.info("Выполнен запрос updateFilm.");
-        return film;
+        return filmForSave;
     }
 
     /**
@@ -58,15 +65,5 @@ public class FilmController extends AbstractController<Long, Film>{
     private boolean filmValidation(Film film) {
         return !film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))
                 && film.getDuration().toMillis() > 0;
-    }
-
-    /**
-     * Задает id новому фильму.
-     *
-     * @param film Film с id == null
-     * @return Film с заданным id.
-     */
-    private Film setId(Film film) {
-        return new Film(idCounter++, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration());
     }
 }
