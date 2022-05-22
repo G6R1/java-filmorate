@@ -2,12 +2,12 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exceptions.FilmValidationException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,34 +18,52 @@ public class FilmService {
 
     @Autowired
     public FilmService(FilmStorage storage) {
+        likesMap = new HashMap<>();
         this.storage = storage;
     }
 
     public boolean addLike(Long filmId, Long userId) {
-        likesMap.put(filmId, likesMap.getOrDefault(filmId, Collections.emptySet()));
+        initiateCheck(filmId);
+
         likesMap.get(filmId).add(userId);
         return true;
     }
 
     public boolean removeLike(Long filmId, Long userId) {
+        initiateCheck(filmId);
+
         likesMap.get(filmId).remove(userId);
         return true;
 
     }
 
-    public List<Long> showTop10(Long userId) {
-        return likesMap.keySet().stream()
-                .sorted((x, y) -> likesMap.get(y).size() - likesMap.get(x).size())
-                .limit(10)
+    public List<Film> getFilmsWithMostLikes(Integer num) {
+        return storage.findAll().stream()
+                .peek((x) -> initiateCheck(x.getId()))
+                .sorted((x, y) -> likesMap.get(y.getId()).size() - likesMap.get(x.getId()).size())
+                .limit(num)
                 .collect(Collectors.toList());
     }
 
-    /*
-    добавление и удаление лайка, вывод 10 наиболее популярных фильмов по количеству лайков.
-    Пусть пока каждый пользователь может поставить лайк фильму только один раз. //лайки = сет из пользователей. сайз
+    /**
+     * Проверяет объект Film на соответствие критериям:
+     * название не может быть пустым;
+     * максимальная длина описания — 200 символов;
+     * дата релиза — не раньше 28 декабря 1895 года;
+     * продолжительность фильма должна быть положительной.
+     *
+     * @param film проверяемый объект.
+     * @return результат валидации.
      */
+    public boolean filmValidation(Film film) {
+        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
+            throw new FilmValidationException("releaseDate");
+        }
+        return true;
+    }
 
-    /*
-    перенос валидации
-     */
+    private void initiateCheck(Long id) {
+        if (!likesMap.containsKey(id))
+            likesMap.put(id, new HashSet<>());
+    }
 }

@@ -25,16 +25,24 @@ public class InMemoryUserStorage implements UserStorage{
         userMap = new HashMap<>();
     }
 
+    @Override
     public List<User> findAll() {
         return new ArrayList<>(userMap.values());
     }
 
+    @Override
+    public User getUser(Long id) {
+        return userMap.get(id);
+    }
+
+    @Override
     public User create(@Valid @RequestBody User user) {
         User userForSave = setNameIfNameIsBlank(setId(user));
         userMap.put(userForSave.getId(), userForSave);
         return userForSave;
     }
 
+    @Override
     public User update(@Valid @RequestBody User user){
         User userForSave = setNameIfNameIsBlank(user);
         userMap.put(user.getId(), userForSave);

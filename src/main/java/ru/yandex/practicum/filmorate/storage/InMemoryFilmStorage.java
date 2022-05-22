@@ -26,16 +26,24 @@ public class InMemoryFilmStorage implements FilmStorage{
     }
 
 
+    @Override
     public List<Film> findAll() {
         return new ArrayList<>(filmMap.values());
     }
 
+    @Override
+    public Film getFilm(Long id) {
+        return filmMap.get(id);
+    }
+
+    @Override
     public Film create(Film film) {
         Film filmForSave = setId(film);
         filmMap.put(filmForSave.getId(), filmForSave);
         return filmForSave;
     }
 
+    @Override
     public Film update(Film film) throws FilmValidationException {
         filmMap.put(film.getId(), film);
         return film;
