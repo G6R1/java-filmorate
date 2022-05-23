@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class InMemoryFilmStorage implements FilmStorage{
+public class InMemoryFilmStorage implements FilmStorage {
 
     private Long idCounter = 1L;
     private final Map<Long, Film> filmMap;
@@ -24,7 +24,6 @@ public class InMemoryFilmStorage implements FilmStorage{
     public InMemoryFilmStorage() {
         filmMap = new HashMap<>();
     }
-
 
     @Override
     public List<Film> findAll() {

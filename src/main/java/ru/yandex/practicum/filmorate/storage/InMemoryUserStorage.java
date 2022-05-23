@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class InMemoryUserStorage implements UserStorage{
+public class InMemoryUserStorage implements UserStorage {
 
     private Long idCounter = 1L;
     private final Map<Long, User> userMap;
@@ -43,7 +43,7 @@ public class InMemoryUserStorage implements UserStorage{
     }
 
     @Override
-    public User update(@Valid @RequestBody User user){
+    public User update(@Valid @RequestBody User user) {
         User userForSave = setNameIfNameIsBlank(user);
         userMap.put(user.getId(), userForSave);
         return userForSave;
@@ -51,6 +51,7 @@ public class InMemoryUserStorage implements UserStorage{
 
     /**
      * Если имя имя для отображения User пустое, будет использован логин.
+     *
      * @param user объект для проверки.
      * @return Объект User с не пустым именем.
      */
@@ -67,6 +68,7 @@ public class InMemoryUserStorage implements UserStorage{
 
     /**
      * Задает id новому пользователю.
+     *
      * @param user User с id == null
      * @return User с заданным id.
      */

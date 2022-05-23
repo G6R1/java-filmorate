@@ -61,7 +61,6 @@ public class FilmService {
         }
         return true;
     }
-
     private void initiateCheck(Long id) {
         if (!likesMap.containsKey(id))
             likesMap.put(id, new HashSet<>());
