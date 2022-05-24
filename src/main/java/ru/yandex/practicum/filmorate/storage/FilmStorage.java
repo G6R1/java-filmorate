@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface FilmStorage {
 
-    List<Film> findAll();
+    List<Film> getAllFilms();
 
     Film getFilm(Long id);
 

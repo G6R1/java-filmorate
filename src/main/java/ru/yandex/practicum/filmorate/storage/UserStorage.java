@@ -8,7 +8,7 @@ import java.util.List;
 public interface UserStorage {
 
 
-    List<User> findAll();
+    List<User> getAllUsers();
 
     User getUser(Long id);
 

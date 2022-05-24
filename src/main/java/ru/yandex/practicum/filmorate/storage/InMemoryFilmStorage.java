@@ -26,7 +26,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> findAll() {
+    public List<Film> getAllFilms() {
         return new ArrayList<>(filmMap.values());
     }
 
@@ -43,7 +43,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film update(Film film) throws FilmValidationException {
+    public Film update(Film film) {
         filmMap.put(film.getId(), film);
         return film;
     }

@@ -1,15 +1,8 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import ru.yandex.practicum.filmorate.exceptions.UserValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
-import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +19,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public List<User> findAll() {
+    public List<User> getAllUsers() {
         return new ArrayList<>(userMap.values());
     }
 
@@ -36,33 +29,15 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User create(@Valid @RequestBody User user) {
-        User userForSave = setNameIfNameIsBlank(setId(user));
+    public User create(User user) {
+        User userForSave = setId(user);
         userMap.put(userForSave.getId(), userForSave);
         return userForSave;
     }
 
     @Override
-    public User update(@Valid @RequestBody User user) {
-        User userForSave = setNameIfNameIsBlank(user);
-        userMap.put(user.getId(), userForSave);
-        return userForSave;
-    }
-
-    /**
-     * Если имя имя для отображения User пустое, будет использован логин.
-     *
-     * @param user объект для проверки.
-     * @return Объект User с не пустым именем.
-     */
-    private User setNameIfNameIsBlank(User user) {
-        if (user.getName().isBlank()) {
-            return new User(user.getId(),
-                    user.getEmail(),
-                    user.getLogin(),
-                    user.getLogin(),
-                    user.getBirthday());
-        }
+    public User update(User user) {
+        userMap.put(user.getId(), user);
         return user;
     }
 

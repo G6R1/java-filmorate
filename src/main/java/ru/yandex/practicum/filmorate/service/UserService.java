@@ -10,14 +10,51 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserService {
-    UserStorage storage;
-    Map<Long, List<Long>> friendsMap;
+    private final UserStorage storage;
+    private final Map<Long, List<Long>> friendsMap;
 
     @Autowired
     public UserService(UserStorage storage) {
         friendsMap = new HashMap<>();
         this.storage = storage;
     }
+
+    //работа с сохранинем/обновление пользователей
+
+    public List<User> getAllUsers() {
+        return storage.getAllUsers();
+    }
+
+    public User getUser(Long id) {
+        return storage.getUser(id);
+    }
+
+    public User create(User user) {
+        return storage.create(setNameIfNameIsBlank(user));
+    }
+
+    public User update(User user) {
+        return storage.update(setNameIfNameIsBlank(user));
+    }
+
+    /**
+     * Если имя имя для отображения User пустое, будет использован логин.
+     *
+     * @param user объект для проверки.
+     * @return Объект User с не пустым именем.
+     */
+    private User setNameIfNameIsBlank(User user) {
+        if (user.getName().isBlank()) {
+            return new User(user.getId(),
+                    user.getEmail(),
+                    user.getLogin(),
+                    user.getLogin(),
+                    user.getBirthday());
+        }
+        return user;
+    }
+
+    //работа c дружескими связями между пользователями
 
     public boolean addFriend(Long userId, Long friendId) {
         initiateCheck(userId);

@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
 @Service
 public class FilmService {
 
-    FilmStorage storage;
-    Map<Long, Set<Long>> likesMap;
+    private final FilmStorage storage;
+    private final Map<Long, Set<Long>> likesMap;
 
     @Autowired
     public FilmService(FilmStorage storage) {
@@ -22,27 +22,24 @@ public class FilmService {
         this.storage = storage;
     }
 
-    public boolean addLike(Long filmId, Long userId) {
-        initiateCheck(filmId);
+    //работа с сохранением/изменением фильмов
 
-        likesMap.get(filmId).add(userId);
-        return true;
+    public List<Film> getAllFilms() {
+        return storage.getAllFilms();
     }
 
-    public boolean removeLike(Long filmId, Long userId) {
-        initiateCheck(filmId);
-
-        likesMap.get(filmId).remove(userId);
-        return true;
-
+    public Film getFilm(Long id) {
+        return storage.getFilm(id);
     }
 
-    public List<Film> getFilmsWithMostLikes(Integer num) {
-        return storage.findAll().stream()
-                .peek((x) -> initiateCheck(x.getId()))
-                .sorted((x, y) -> likesMap.get(y.getId()).size() - likesMap.get(x.getId()).size())
-                .limit(num)
-                .collect(Collectors.toList());
+    public Film create(Film film) {
+        filmValidation(film);
+        return storage.create(film);
+    }
+
+    public Film update(Film film) {
+        filmValidation(film);
+        return storage.update(film);
     }
 
     /**
@@ -61,6 +58,32 @@ public class FilmService {
         }
         return true;
     }
+
+    //работа с лайками
+
+    public boolean addLike(Long filmId, Long userId) {
+        initiateCheck(filmId);
+
+        likesMap.get(filmId).add(userId);
+        return true;
+    }
+
+    public boolean removeLike(Long filmId, Long userId) {
+        initiateCheck(filmId);
+
+        likesMap.get(filmId).remove(userId);
+        return true;
+
+    }
+
+    public List<Film> getFilmsWithMostLikes(Integer num) {
+        return storage.getAllFilms().stream()
+                .peek((x) -> initiateCheck(x.getId()))
+                .sorted((x, y) -> likesMap.get(y.getId()).size() - likesMap.get(x.getId()).size())
+                .limit(num)
+                .collect(Collectors.toList());
+    }
+
     private void initiateCheck(Long id) {
         if (!likesMap.containsKey(id))
             likesMap.put(id, new HashSet<>());
