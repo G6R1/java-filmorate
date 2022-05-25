@@ -1,8 +1,6 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,13 +8,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -49,19 +44,19 @@ class FilmControllerTest {
 
     static Stream<Film> validObjectFactory() {
         return Stream.of(
-            new Film(null, "Oreshek", "Big boy", LocalDate.of(1999,1,1), Duration.ofSeconds(123)),
-            new Film(null, "Oreshek", "Big boy", LocalDate.of(1895,12,28), Duration.ofSeconds(123)),
-            new Film(null, "Oreshek", "Big boy", LocalDate.of(1999,1,1), Duration.ofSeconds(1))
+            new Film(null, "Oreshek", "Big boy", LocalDate.of(1999,1,1), 123),
+            new Film(null, "Oreshek", "Big boy", LocalDate.of(1895,12,28), 123),
+            new Film(null, "Oreshek", "Big boy", LocalDate.of(1999,1,1), 123)
         );
     }
 
     static Stream<Film> invalidObjectFactory() {
         return Stream.of(
-                new Film(null, "", "Empty name", LocalDate.of(1999,1,1), Duration.ofSeconds(123)),
-                new Film(null, "Empty description", "", LocalDate.of(1999,1,1), Duration.ofSeconds(123)),
-                new Film(null, "Description 200+", "Sddnvlkdshfvskdjfksikhfunsdcwjhikjemkfjdsjvfisjnvujshosiufhiuerhfpoerjfverbvefddfshfslnfsnvofedhvuofshjmochdlhdjmcfjdbmgkdjdgfjcmdgfjhdvkfjgfhgfgfdgfvvtvrwvcgsvcgvcsfdchcgfcxhwfuxngbgbfdvgsvfjhgvhfdbdsss", LocalDate.of(1999,1,1), Duration.ofSeconds(123)),
-                new Film(null, "Date", "Date is before 28.12.1895", LocalDate.of(1895,12,27), Duration.ofSeconds(123)),
-                new Film(null, "Duration", "Duration is zero", LocalDate.of(1895,12,27), Duration.ofSeconds(0))
+                new Film(null, "", "Empty name", LocalDate.of(1999,1,1), 123),
+                new Film(null, "Empty description", "", LocalDate.of(1999,1,1), 123),
+                new Film(null, "Description 200+", "Sddnvlkdshfvskdjfksikhfunsdcwjhikjemkfjdsjvfisjnvujshosiufhiuerhfpoerjfverbvefddfshfslnfsnvofedhvuofshjmochdlhdjmcfjdbmgkdjdgfjcmdgfjhdvkfjgfhgfgfdgfvvtvrwvcgsvcgvcsfdchcgfcxhwfuxngbgbfdvgsvfjhgvhfdbdsss", LocalDate.of(1999,1,1), 123),
+                new Film(null, "Date", "Date is before 28.12.1895", LocalDate.of(1895,12,27), 123),
+                new Film(null, "Duration", "Duration is zero", LocalDate.of(1895,12,27), 0)
         );
     }
 }
