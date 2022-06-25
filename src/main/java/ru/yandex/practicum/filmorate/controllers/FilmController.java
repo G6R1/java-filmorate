@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.exceptions.FriendNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -19,24 +20,24 @@ import java.util.*;
 @RequestMapping("/films")
 public class FilmController {
 
-    private final FilmService service;
+    private final FilmService filmService;
     private final UserService userService;
 
     @Autowired
-    public FilmController(FilmService service, UserService userService) {
-        this.service = service;
+    public FilmController(FilmService filmService, UserService userService) {
+        this.filmService = filmService;
         this.userService = userService;
     }
 
     @GetMapping()
     public List<Film> getAllFilms() {
         log.info("Выполнен запрос getAllFilms.");
-        return service.getAllFilms();
+        return filmService.getAllFilms();
     }
 
     @GetMapping("{id}")
     public Film getFilm(@PathVariable Long id) {
-        Film film = service.getFilm(id);
+        Film film = filmService.getFilm(id);
         if (film == null)
             throw new FilmNotFoundException();
         log.info("Выполнен запрос getUser.");
@@ -48,8 +49,8 @@ public class FilmController {
         if (film.getId() != null)
             throw new FilmValidationException("id");
 
-        Film filmForSave = service.create(film);
-        log.info("Выполнен запрос createFilm. Текущее количество фильмов: " + service.getAllFilms().size());
+        Film filmForSave = filmService.create(film);
+        log.info("Выполнен запрос createFilm. Текущее количество фильмов: " + filmService.getAllFilms().size());
         return filmForSave;
     }
 
@@ -58,41 +59,41 @@ public class FilmController {
         if (film.getId() == null)
             throw new FilmValidationException("id");
 
-        if (service.getFilm(film.getId()) == null)
+        if (filmService.getFilm(film.getId()) == null)
             throw new FilmNotFoundException();
 
-        Film filmForSave = service.update(film);
+        Film filmForSave = filmService.update(film);
         log.info("Выполнен запрос updateFilm.");
         return filmForSave;
     }
 
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable Long id, @PathVariable Long userId) {
-        if (service.getFilm(id) == null)
+        if (filmService.getFilm(id) == null)
             throw new FriendNotFoundException();
 
         if (userService.getUser(userId) == null)
             throw new UserNotFoundException();
 
         log.info("Выполнен запрос addLike.");
-        service.addLike(id, userId);
+        filmService.addLike(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
     public void removeLike(@PathVariable Long id, @PathVariable Long userId) {
-        if (service.getFilm(id) == null)
+        if (filmService.getFilm(id) == null)
             throw new FriendNotFoundException();
 
         if (userService.getUser(userId) == null)
             throw new UserNotFoundException();
 
         log.info("Выполнен запрос removeLike.");
-        service.removeLike(id, userId);
+        filmService.removeLike(id, userId);
     }
 
     @GetMapping("/popular")
     public List<Film> getFilmsWithMostLikes(@RequestParam Optional<Integer> count) {
         log.info("Выполнен запрос getFilmsWithMostLikes.");
-        return service.getFilmsWithMostLikes(count.orElse(10));
+        return filmService.getFilmsWithMostLikes(count.orElse(10));
     }
 }

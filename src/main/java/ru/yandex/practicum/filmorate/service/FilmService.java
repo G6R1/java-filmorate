@@ -3,51 +3,51 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.FilmValidationException;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.LikeStorage;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
 
-    private final FilmStorage storage;
-    private final Map<Long, Set<Long>> likesMap;
+    private final FilmStorage filmStorage;
+    private final LikeStorage likeStorage;
 
     @Autowired
-    public FilmService(FilmStorage storage) {
-        likesMap = new HashMap<>();
-        this.storage = storage;
+    public FilmService(FilmStorage filmStorage, LikeStorage likeStorage) {
+        this.likeStorage = likeStorage;
+        this.filmStorage = filmStorage;
     }
 
     //работа с сохранением/изменением фильмов
 
     public List<Film> getAllFilms() {
-        return storage.getAllFilms();
+        return filmStorage.getAllFilms();
     }
 
     public Film getFilm(Long id) {
-        return storage.getFilm(id);
+        return filmStorage.getFilm(id);
     }
 
     public Film create(Film film) {
         filmValidation(film);
-        return storage.create(film);
+        return filmStorage.create(film);
     }
 
     public Film update(Film film) {
         filmValidation(film);
-        return storage.update(film);
+        return filmStorage.update(film);
     }
 
     /**
      * Проверяет объект Film на соответствие критериям:
-     * название не может быть пустым;
-     * максимальная длина описания — 200 символов;
      * дата релиза — не раньше 28 декабря 1895 года;
-     * продолжительность фильма должна быть положительной.
      *
      * @param film проверяемый объект.
      * @return результат валидации.
@@ -59,33 +59,40 @@ public class FilmService {
         return true;
     }
 
+
     //работа с лайками
 
     public boolean addLike(Long filmId, Long userId) {
-        initiateCheck(filmId);
-
-        likesMap.get(filmId).add(userId);
-        return true;
+        return likeStorage.addLike(filmId, userId);
     }
 
     public boolean removeLike(Long filmId, Long userId) {
-        initiateCheck(filmId);
-
-        likesMap.get(filmId).remove(userId);
-        return true;
-
+        return likeStorage.removeLike(filmId, userId);
     }
 
     public List<Film> getFilmsWithMostLikes(Integer num) {
-        return storage.getAllFilms().stream()
-                .peek((x) -> initiateCheck(x.getId()))
-                .sorted((x, y) -> likesMap.get(y.getId()).size() - likesMap.get(x.getId()).size())
-                .limit(num)
-                .collect(Collectors.toList());
+        return likeStorage.getFilmsWithMostLikes(num);
     }
 
-    private void initiateCheck(Long id) {
-        if (!likesMap.containsKey(id))
-            likesMap.put(id, new HashSet<>());
+    //рейтинг/жанры
+
+    public RatingMPA getMpa(Long ratingId) {
+        if (ratingId < 1 || ratingId > 5)
+            throw new NotFoundException("ratingMpa");
+        return filmStorage.getMpa(ratingId);
+    }
+
+    public List<RatingMPA> getAllMpa() {
+        return filmStorage.getAllMpa();
+    }
+
+    public Genre getGenre(Long genreId) {
+        if (genreId < 1 || genreId > 6)
+            throw new NotFoundException("Genre");
+        return filmStorage.getGenre(genreId);
+    }
+
+    public List<Genre> getAllGenres() {
+        return filmStorage.getAllGenres();
     }
 }

@@ -1,66 +1,87 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.jdbc.JdbcTestUtils;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FriendsStorage;
+import ru.yandex.practicum.filmorate.storage.impl.FilmDbStorage;
+import ru.yandex.practicum.filmorate.storage.impl.FriendsDbStorage;
+import ru.yandex.practicum.filmorate.storage.impl.LikeDbStorage;
+import ru.yandex.practicum.filmorate.storage.impl.UserDbStorage;
 
-import java.time.Duration;
 import java.time.LocalDate;
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.Optional;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@AutoConfigureMockMvc
+@SpringBootTest
+@AutoConfigureTestDatabase
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 class UserControllerTest {
 
-    @Autowired
-    ObjectMapper mapper;
-    @Autowired
-    MockMvc mockMvc;
+    private final UserDbStorage userDbStorage;
+    private final FriendsStorage friendsStorage;
 
-    @ParameterizedTest
-    @MethodSource("validObjectFactory")
-    void userValidationOkTest(User user) throws Exception {
-        this.mockMvc.perform(post("/users")
-                        .content(mapper.writeValueAsString(user))
-                        .contentType("application/json"))
-                .andExpect(status().isOk());
-    }
+    Gson gson = new Gson();
 
-    @ParameterizedTest
-    @MethodSource("invalidObjectFactory")
-    void userValidationNotOkTest(User user) throws Exception {
-        this.mockMvc.perform(post("/users")
-                        .content(mapper.writeValueAsString(user))
-                        .contentType("application/json"))
-                .andExpect(status().isBadRequest());
-    }
+    User user1 = gson.fromJson("{\"login\": \"loginUser1\", " +
+                    "\"name\": \"nameUser1\", " +
+                    "\"email\": \"user1@mail.ru\"," +
+                    "\"birthday\": {\"year\":1955,\"month\":6,\"day\":6} }",
+                    User.class );
+    User user1_update = new User(1L,
+            "user1@mail.ru",
+            "login_update",
+            "nameUser1",
+            LocalDate.of(1955,6,6));
+    User user2 = gson.fromJson("{\"login\": \"nameUser2\", " +
+                    "\"name\": \"nameUser2\", " +
+                    "\"email\": \"user2@mail.ru\"," +
+                    "\"birthday\": {\"year\":1965,\"month\":5,\"day\":5} }",
+                    User.class );
+    User user3 = gson.fromJson("{\"login\": \"nameUser3\", " +
+                    "\"name\": \"nameUser3\", " +
+                    "\"email\": \"user3@mail.ru\"," +
+                    "\"birthday\": {\"year\":1945,\"month\":4,\"day\":4} }",
+                    User.class );
 
-    static Stream<User> validObjectFactory() {
-        return Stream.of(
-                new User(null, "mail@mail.ru", "logy", "Bob", LocalDate.of(1999,3,23)),
-                new User(null, "mail@mail.ru", "Empty_name", "", LocalDate.of(1999,3,23))
-        );
-    }
 
-    static Stream<User> invalidObjectFactory() {
-        return Stream.of(
-                new User(null, "", "login", "Empty_mail", LocalDate.of(1999,3,23)),
-                new User(null, "mail!mail.ru", "login", "Mail_without_@", LocalDate.of(1999,3,23)),
-                new User(null, "mail@mail.ru", "", "Empty_login", LocalDate.of(1999,3,23)),
-                new User(null, "mail@mail.ru", "Lo Gy", "Login_with_space", LocalDate.of(1999,3,23)),
-                new User(null, "mail@mail.ru", "login", "In_future", LocalDate.of(2999,3,23))
-        );
+    @Test
+    void userControllerTest() {
+        userDbStorage.create(user1);
+        Optional<User> userOptional = Optional.of(userDbStorage.getUser(1L));
+        assertThat(userOptional).isPresent()
+                .hasValueSatisfying(user ->
+                        assertThat(user).hasFieldOrPropertyWithValue("id", 1L));
+
+        //update()
+        userDbStorage.update(user1_update);
+        Optional<User> userOptionalUpdate = Optional.of(userDbStorage.getUser(1L));
+        assertThat(userOptionalUpdate).isPresent()
+                .hasValueSatisfying(user ->
+                        assertThat(user).hasFieldOrPropertyWithValue("login", "login_update"));
+        //friendsTest
+        friendsStorage.addFriend(1L, 2L);
+        assertEquals(1,friendsStorage.getFriends(1L).size());
+        assertEquals(0,friendsStorage.getFriends(2L).size());
+        friendsStorage.removeFriend(1L, 2L);
+        assertEquals(0,friendsStorage.getFriends(1L).size());
+        //getCommonFriends()
+        userDbStorage.create(user3);
+        friendsStorage.addFriend(1L, 3L);
+        friendsStorage.addFriend(2L, 3L);
+        List<User> friendsList = friendsStorage.getCommonFriends(1L, 2L);
+        assertEquals(1, friendsList.size());
+        assertEquals(3L, friendsList.get(0).getId());
     }
 }

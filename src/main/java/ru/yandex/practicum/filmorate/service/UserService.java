@@ -3,21 +3,22 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FriendsStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
     private final UserStorage storage;
-    private final Map<Long, List<Long>> friendsMap;
+    private final FriendsStorage friendsStorage;
 
     @Autowired
-    public UserService(UserStorage storage) {
-        friendsMap = new HashMap<>();
+    public UserService(UserStorage storage, FriendsStorage friendsStorage) {
         this.storage = storage;
+        this.friendsStorage = friendsStorage;
     }
+
 
     //работа с сохранинем/обновление пользователей
 
@@ -54,45 +55,22 @@ public class UserService {
         return user;
     }
 
+
     //работа c дружескими связями между пользователями
 
     public boolean addFriend(Long userId, Long friendId) {
-        initiateCheck(userId);
-        initiateCheck(friendId);
-        friendsMap.get(userId).add(friendId);
-        friendsMap.get(friendId).add(userId);
-        return true;
+        return friendsStorage.addFriend(userId, friendId);
     }
 
     public List<User> getFriends(Long userId) {
-        initiateCheck(userId);
-        return friendsMap.get(userId).stream().map(storage::getUser).collect(Collectors.toList());
+        return friendsStorage.getFriends(userId);
     }
 
     public boolean removeFriend(Long userId, Long friendId) {
-        initiateCheck(userId);
-        initiateCheck(friendId);
-        friendsMap.get(userId).remove(friendId);
-        friendsMap.get(friendId).remove(userId);
-        return true;
-    }
-
-    public List<Long> getAllFriends(Long userId) {
-        initiateCheck(userId);
-        return friendsMap.get(userId);
+        return friendsStorage.removeFriend(userId, friendId);
     }
 
     public List<User> getCommonFriends(Long userId, Long otherId) {
-        initiateCheck(userId);
-        initiateCheck(otherId);
-        return friendsMap.get(userId).stream()
-                .filter((x) -> friendsMap.get(otherId).contains(x))
-                .map(storage::getUser)
-                .collect(Collectors.toList());
-    }
-
-    private void initiateCheck(Long id) {
-        if (!friendsMap.containsKey(id))
-            friendsMap.put(id, new ArrayList<>());
+        return friendsStorage.getCommonFriends(userId, otherId);
     }
 }

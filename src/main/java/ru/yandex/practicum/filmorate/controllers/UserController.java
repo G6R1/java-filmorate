@@ -2,8 +2,6 @@ package ru.yandex.practicum.filmorate.controllers;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import ru.yandex.practicum.filmorate.exceptions.AlreadyFriendsException;
-import ru.yandex.practicum.filmorate.exceptions.FriendNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.UserValidationException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -12,7 +10,6 @@ import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 @RestController
@@ -70,9 +67,6 @@ public class UserController {
         if (service.getUser(id) == null || service.getUser(friendId) == null)
             throw new UserNotFoundException();
 
-        if (service.getAllFriends(id).contains(friendId))
-            throw new AlreadyFriendsException();
-
         service.addFriend(id, friendId);
         log.info("Выполнен запрос addFriend.");
     }
@@ -81,9 +75,6 @@ public class UserController {
     public void removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
         if (service.getUser(id) == null || service.getUser(friendId) == null)
             throw new UserNotFoundException();
-
-        if (!service.getAllFriends(id).contains(friendId))
-            throw new FriendNotFoundException();
 
         service.removeFriend(id, friendId);
         log.info("Выполнен запрос removeFriend.");
@@ -95,9 +86,7 @@ public class UserController {
             throw new UserNotFoundException();
 
         log.info("Выполнен запрос getFriends.");
-        return service.getAllFriends(id).stream()
-                .map(service::getUser)
-                .collect(Collectors.toList());
+        return service.getFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
