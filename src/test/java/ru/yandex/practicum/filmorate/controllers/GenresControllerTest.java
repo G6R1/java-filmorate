@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
+import ru.yandex.practicum.filmorate.storage.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.impl.FilmDbStorage;
 
 import java.time.LocalDate;
@@ -23,25 +24,21 @@ import static org.junit.jupiter.api.Assertions.*;
 class GenresControllerTest {
 
     private final FilmDbStorage filmDbStorage;
+    private final GenreStorage genreStorage;
 
     @Test
     void getAllGenres() {
-        List<Genre> genresList = filmDbStorage.getAllGenres();
+        List<Genre> genresList = genreStorage.getAllGenres();
         assertEquals(6, genresList.size());
     }
 
     @Test
     void getGenre() {
-        Optional<Genre> genre = Optional.of(filmDbStorage.getGenre(2L));
+        Optional<Genre> genre = Optional.of(genreStorage.getGenre(2L));
         assertThat(genre).isPresent()
                 .hasValueSatisfying(rating ->
                         assertThat(rating).hasFieldOrPropertyWithValue("id", 2L))
                 .hasValueSatisfying(rating ->
                         assertThat(rating).hasFieldOrPropertyWithValue("name", "Драма"));
-    }
-
-    @Test
-    void emptyTest() {
-
     }
 }
