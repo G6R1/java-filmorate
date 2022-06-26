@@ -32,9 +32,8 @@ public class GenresController {
 
     @GetMapping("/{id}")
     public Genre getGenre(@PathVariable Optional<Long> id) {
-        if (id.isEmpty())
-            throw new ValidationException("id");
+        Genre genre = filmService.getGenre(id.orElseThrow(() -> new ValidationException("id")));
         log.info("Выполнен запрос getGenre.");
-        return filmService.getGenre(id.get());
+        return genre;
     }
 }

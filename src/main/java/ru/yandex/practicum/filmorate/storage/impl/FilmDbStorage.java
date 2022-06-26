@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,10 +22,12 @@ import java.util.stream.Collectors;
 @Primary
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final GenreStorage genreStorage;
 
     @Autowired
-    public FilmDbStorage(JdbcTemplate jdbcTemplate) {
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, GenreStorage genreStorage) {
         this.jdbcTemplate = jdbcTemplate;
+        this.genreStorage = genreStorage;
     }
 
     @Override
@@ -32,13 +35,10 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "select  film_id, f.name as fname, description, releaseDate, duration, " +
                 "f.rating_id as frating_id, rm.name as rmname " +
                 "from films as f join rating_mpa as rm on f.rating_id = rm.rating_id";
-        String sqlGenres = "select film_id, fg.GENRE_ID as fggenre_id, g.name as gname\n" +
-                "from film_genres as fg join genres as g on fg. genre_id = g. genre_id\n";
 
         List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs));
 
-        SqlRowSet genreRows = jdbcTemplate.queryForRowSet(sqlGenres);
-        Map<Long, Set<Genre>> genreMap = makeGenreMap(genreRows);
+        Map<Long, Set<Genre>> genreMap = genreStorage.getMapFilmIdSetGenre();
 
         List<Film> filmWithGenres = new ArrayList<>();
         for (Film film : films) {
@@ -68,30 +68,6 @@ public class FilmDbStorage implements FilmStorage {
         return new Film(id, name, description, releaseDate, duration, mpa, null);
     }
 
-    /**
-     * Преобразует данные таблицы film_genres в HashMap<Long, Set<Genre>>, где Long - id фильма,
-     * Set<Genre> - сет из жанров фильма с ключем-id для помещения в объект film.
-     *
-     * @param genresRowSet
-     * @return
-     */
-    private Map<Long, Set<Genre>> makeGenreMap(SqlRowSet genresRowSet) {
-        Map<Long, Set<Genre>> genreMap = new HashMap<>();
-        while (genresRowSet.next()) {
-            Long film_id = genresRowSet.getLong("film_id");
-            Long genre_id = genresRowSet.getLong("fggenre_id");
-            String genre_name = genresRowSet.getString("gname");
-            if (genreMap.containsKey(film_id)) {
-                genreMap.get(film_id).add(new Genre(genre_id, genre_name));
-            } else {
-                genreMap.put(film_id, new HashSet<>());
-                genreMap.get(film_id).add(new Genre(genre_id, genre_name));
-            }
-        }
-        return genreMap;
-    }
-
-
     @Override
     public Film getFilm(Long id) {
         String sql = "select  film_id, f.name as fname, description, releaseDate, duration, " +
@@ -99,14 +75,10 @@ public class FilmDbStorage implements FilmStorage {
                 "from films as f " +
                 "join rating_mpa as rm on f.rating_id = rm.rating_id " +
                 "where film_id = ?";
-        String sqlGenres = "select film_id, fg.GENRE_ID as fggenre_id, g.name as gname " +
-                "from film_genres as fg join genres as g on fg. genre_id = g. genre_id " +
-                "where film_id = ?";
 
         SqlRowSet filmRowSet = jdbcTemplate.queryForRowSet(sql, id);
-        SqlRowSet genresRowSet = jdbcTemplate.queryForRowSet(sqlGenres, id);
 
-        Map<Long, Set<Genre>> genreMap = makeGenreMap(genresRowSet);
+        Map<Long, Set<Genre>> genreMap = genreStorage.getMapFilmIdSetGenreWithIdFilter(id);
 
         if (filmRowSet.next()) {
             Film film = new Film(
@@ -244,34 +216,5 @@ public class FilmDbStorage implements FilmStorage {
         Long id = rs.getLong("rating_id");
         String name = rs.getString("name");
         return new RatingMPA(id, name);
-    }
-
-    @Override
-    public Genre getGenre(Long genreId) {
-        String sql = "select * from genres where genre_id = ?";
-
-        SqlRowSet genreRowSet = jdbcTemplate.queryForRowSet(sql, genreId);
-
-        if (genreRowSet.next()) {
-            return new Genre(genreRowSet.getLong("genre_id"),
-                    genreRowSet.getString("name"));
-        } else {
-            return null;
-        }
-    }
-
-    @Override
-    public List<Genre> getAllGenres() {
-        String sql = "select * from genres";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> makeGenre(rs));
-    }
-
-    /**
-     * Маппер
-     */
-    private Genre makeGenre(ResultSet rs) throws SQLException {
-        Long id = rs.getLong("genre_id");
-        String name = rs.getString("name");
-        return new Genre(id, name);
     }
 }

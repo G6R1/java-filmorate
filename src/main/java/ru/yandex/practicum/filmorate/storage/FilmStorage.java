@@ -22,9 +22,5 @@ public interface FilmStorage {
     RatingMPA getMpa(Long ratingId);
 
     List<RatingMPA> getAllMpa();
-
-    Genre getGenre(Long ratingId);
-
-    List<Genre> getAllGenres();
 }
 

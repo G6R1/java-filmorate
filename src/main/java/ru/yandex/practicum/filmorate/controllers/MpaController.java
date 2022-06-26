@@ -32,9 +32,8 @@ public class MpaController {
 
     @GetMapping("/{id}")
     public RatingMPA getMpa(@PathVariable Optional<Long> id) {
-        if (id.isEmpty())
-            throw new ValidationException("id");
+        RatingMPA ratingMPA = filmService.getMpa(id.orElseThrow(() -> new ValidationException("id")));
         log.info("Выполнен запрос getMpa.");
-        return filmService.getMpa(id.get());
+        return ratingMPA;
     }
 }

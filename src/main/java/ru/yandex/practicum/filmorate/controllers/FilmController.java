@@ -38,17 +38,12 @@ public class FilmController {
     @GetMapping("{id}")
     public Film getFilm(@PathVariable Long id) {
         Film film = filmService.getFilm(id);
-        if (film == null)
-            throw new FilmNotFoundException();
         log.info("Выполнен запрос getUser.");
         return film;
     }
 
     @PostMapping()
     public Film create(@Valid @RequestBody Film film) {
-        if (film.getId() != null)
-            throw new FilmValidationException("id");
-
         Film filmForSave = filmService.create(film);
         log.info("Выполнен запрос createFilm. Текущее количество фильмов: " + filmService.getAllFilms().size());
         return filmForSave;
@@ -56,12 +51,6 @@ public class FilmController {
 
     @PutMapping()
     public Film update(@Valid @RequestBody Film film) {
-        if (film.getId() == null)
-            throw new FilmValidationException("id");
-
-        if (filmService.getFilm(film.getId()) == null)
-            throw new FilmNotFoundException();
-
         Film filmForSave = filmService.update(film);
         log.info("Выполнен запрос updateFilm.");
         return filmForSave;
@@ -69,31 +58,20 @@ public class FilmController {
 
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable Long id, @PathVariable Long userId) {
-        if (filmService.getFilm(id) == null)
-            throw new FriendNotFoundException();
-
-        if (userService.getUser(userId) == null)
-            throw new UserNotFoundException();
-
-        log.info("Выполнен запрос addLike.");
         filmService.addLike(id, userId);
+        log.info("Выполнен запрос addLike.");
     }
 
     @DeleteMapping("/{id}/like/{userId}")
     public void removeLike(@PathVariable Long id, @PathVariable Long userId) {
-        if (filmService.getFilm(id) == null)
-            throw new FriendNotFoundException();
-
-        if (userService.getUser(userId) == null)
-            throw new UserNotFoundException();
-
-        log.info("Выполнен запрос removeLike.");
         filmService.removeLike(id, userId);
+        log.info("Выполнен запрос removeLike.");
     }
 
     @GetMapping("/popular")
     public List<Film> getFilmsWithMostLikes(@RequestParam Optional<Integer> count) {
+        List<Film> list = filmService.getFilmsWithMostLikes(count.orElse(10));
         log.info("Выполнен запрос getFilmsWithMostLikes.");
-        return filmService.getFilmsWithMostLikes(count.orElse(10));
+        return list;
     }
 }

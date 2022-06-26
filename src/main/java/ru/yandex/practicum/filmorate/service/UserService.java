@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.UserValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FriendsStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
@@ -27,14 +29,25 @@ public class UserService {
     }
 
     public User getUser(Long id) {
-        return storage.getUser(id);
+        User user = storage.getUser(id);
+        if (user == null)
+            throw new UserNotFoundException();
+        return user;
     }
 
     public User create(User user) {
+        if (user.getId() != null)
+            throw new UserValidationException("id");
         return storage.create(setNameIfNameIsBlank(user));
     }
 
     public User update(User user) {
+        if (user.getId() == null)
+            throw new UserValidationException("id");
+
+        if (this.getUser(user.getId()) == null)
+            throw new UserNotFoundException();
+
         return storage.update(setNameIfNameIsBlank(user));
     }
 
@@ -59,18 +72,26 @@ public class UserService {
     //работа c дружескими связями между пользователями
 
     public boolean addFriend(Long userId, Long friendId) {
+        if (this.getUser(userId) == null || this.getUser(friendId) == null)
+            throw new UserNotFoundException();
         return friendsStorage.addFriend(userId, friendId);
     }
 
     public List<User> getFriends(Long userId) {
+        if (this.getUser(userId) == null)
+            throw new UserNotFoundException();
         return friendsStorage.getFriends(userId);
     }
 
     public boolean removeFriend(Long userId, Long friendId) {
+        if (this.getUser(userId) == null || this.getUser(friendId) == null)
+            throw new UserNotFoundException();
         return friendsStorage.removeFriend(userId, friendId);
     }
 
     public List<User> getCommonFriends(Long userId, Long otherId) {
+        if (this.getUser(userId) == null || this.getUser(otherId) == null)
+            throw new UserNotFoundException();
         return friendsStorage.getCommonFriends(userId, otherId);
     }
 }
