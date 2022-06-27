@@ -2,52 +2,107 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exceptions.FilmValidationException;
+import ru.yandex.practicum.filmorate.exceptions.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.RatingMPA;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.LikeStorage;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
 
-    private final FilmStorage storage;
-    private final Map<Long, Set<Long>> likesMap;
+    private final FilmStorage filmStorage;
+    private final LikeStorage likeStorage;
+    private final UserService userService;
+    private final GenreStorage genreStorage;
 
     @Autowired
-    public FilmService(FilmStorage storage) {
-        likesMap = new HashMap<>();
-        this.storage = storage;
+    public FilmService(FilmStorage filmStorage, LikeStorage likeStorage, UserService userService, GenreStorage genreStorage) {
+        this.likeStorage = likeStorage;
+        this.filmStorage = filmStorage;
+        this.userService = userService;
+        this.genreStorage = genreStorage;
     }
 
     //работа с сохранением/изменением фильмов
 
     public List<Film> getAllFilms() {
-        return storage.getAllFilms();
+
+        List<Film> filmsWithoutGenres= filmStorage.getAllFilms();
+        Map<Long, Set<Genre>> genreMap = genreStorage.getMapFilmIdSetGenre();
+        List<Film> filmWithGenres = new ArrayList<>();
+
+        for (Film film : filmsWithoutGenres) {
+            filmWithGenres.add(new Film(film.getId(),
+                    film.getName(),
+                    film.getDescription(),
+                    film.getReleaseDate(),
+                    film.getDuration(),
+                    film.getMpa(),
+                    genreMap.getOrDefault(film.getId(), null)));
+        }
+
+
+        return filmWithGenres;
     }
 
     public Film getFilm(Long id) {
-        return storage.getFilm(id);
+        Film film = filmStorage.getFilm(id);
+        Map<Long, Set<Genre>> genreMap = genreStorage.getMapFilmIdSetGenreWithIdFilter(id);
+        if (film == null)
+            throw new FilmNotFoundException();
+
+        return new Film(id,
+                film.getName(),
+                film.getDescription(),
+                film.getReleaseDate(),
+                film.getDuration(),
+                film.getMpa(),
+                genreMap.get(id));
     }
 
     public Film create(Film film) {
+        if (film.getId() != null)
+            throw new FilmValidationException("id");
+
         filmValidation(film);
-        return storage.create(film);
+
+        return getFilm(filmStorage.create(film).getId());
     }
 
     public Film update(Film film) {
+        if (film.getId() == null)
+            throw new FilmValidationException("id");
+
+        if (this.getFilm(film.getId()) == null)
+            throw new FilmNotFoundException();
+
         filmValidation(film);
-        return storage.update(film);
+
+        Film filmForGenreCheck = getFilm(filmStorage.update(film).getId());
+        //[] = [] null = null
+        if (film.getGenres() != null) {
+            if (film.getGenres().isEmpty()) {
+                return new Film(filmForGenreCheck.getId(),
+                        filmForGenreCheck.getName(),
+                        filmForGenreCheck.getDescription(),
+                        filmForGenreCheck.getReleaseDate(),
+                        filmForGenreCheck.getDuration(),
+                        filmForGenreCheck.getMpa(),
+                        new HashSet<Genre>());
+            }
+        }
+        return filmForGenreCheck;
     }
 
     /**
      * Проверяет объект Film на соответствие критериям:
-     * название не может быть пустым;
-     * максимальная длина описания — 200 символов;
      * дата релиза — не раньше 28 декабря 1895 года;
-     * продолжительность фильма должна быть положительной.
      *
      * @param film проверяемый объект.
      * @return результат валидации.
@@ -59,33 +114,42 @@ public class FilmService {
         return true;
     }
 
+
     //работа с лайками
 
     public boolean addLike(Long filmId, Long userId) {
-        initiateCheck(filmId);
+        if (this.getFilm(filmId) == null)
+            throw new FriendNotFoundException();
 
-        likesMap.get(filmId).add(userId);
-        return true;
+        if (userService.getUser(userId) == null)
+            throw new UserNotFoundException();
+
+        return likeStorage.addLike(filmId, userId);
     }
 
     public boolean removeLike(Long filmId, Long userId) {
-        initiateCheck(filmId);
+        if (this.getFilm(filmId) == null)
+            throw new FriendNotFoundException();
 
-        likesMap.get(filmId).remove(userId);
-        return true;
+        if (userService.getUser(userId) == null)
+            throw new UserNotFoundException();
 
+        return likeStorage.removeLike(filmId, userId);
     }
 
     public List<Film> getFilmsWithMostLikes(Integer num) {
-        return storage.getAllFilms().stream()
-                .peek((x) -> initiateCheck(x.getId()))
-                .sorted((x, y) -> likesMap.get(y.getId()).size() - likesMap.get(x.getId()).size())
-                .limit(num)
-                .collect(Collectors.toList());
+        return likeStorage.getFilmsWithMostLikes(num);
     }
 
-    private void initiateCheck(Long id) {
-        if (!likesMap.containsKey(id))
-            likesMap.put(id, new HashSet<>());
+    //рейтинг
+
+    public RatingMPA getMpa(Long ratingId) {
+        if (ratingId < 1 || ratingId > 5)
+            throw new NotFoundException("ratingMpa");
+        return filmStorage.getMpa(ratingId);
+    }
+
+    public List<RatingMPA> getAllMpa() {
+        return filmStorage.getAllMpa();
     }
 }

@@ -2,22 +2,25 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.UserValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FriendsStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService {
     private final UserStorage storage;
-    private final Map<Long, List<Long>> friendsMap;
+    private final FriendsStorage friendsStorage;
 
     @Autowired
-    public UserService(UserStorage storage) {
-        friendsMap = new HashMap<>();
+    public UserService(UserStorage storage, FriendsStorage friendsStorage) {
         this.storage = storage;
+        this.friendsStorage = friendsStorage;
     }
+
 
     //работа с сохранинем/обновление пользователей
 
@@ -26,14 +29,25 @@ public class UserService {
     }
 
     public User getUser(Long id) {
-        return storage.getUser(id);
+        User user = storage.getUser(id);
+        if (user == null)
+            throw new UserNotFoundException();
+        return user;
     }
 
     public User create(User user) {
+        if (user.getId() != null)
+            throw new UserValidationException("id");
         return storage.create(setNameIfNameIsBlank(user));
     }
 
     public User update(User user) {
+        if (user.getId() == null)
+            throw new UserValidationException("id");
+
+        if (this.getUser(user.getId()) == null)
+            throw new UserNotFoundException();
+
         return storage.update(setNameIfNameIsBlank(user));
     }
 
@@ -54,45 +68,30 @@ public class UserService {
         return user;
     }
 
+
     //работа c дружескими связями между пользователями
 
     public boolean addFriend(Long userId, Long friendId) {
-        initiateCheck(userId);
-        initiateCheck(friendId);
-        friendsMap.get(userId).add(friendId);
-        friendsMap.get(friendId).add(userId);
-        return true;
+        if (this.getUser(userId) == null || this.getUser(friendId) == null)
+            throw new UserNotFoundException();
+        return friendsStorage.addFriend(userId, friendId);
     }
 
     public List<User> getFriends(Long userId) {
-        initiateCheck(userId);
-        return friendsMap.get(userId).stream().map(storage::getUser).collect(Collectors.toList());
+        if (this.getUser(userId) == null)
+            throw new UserNotFoundException();
+        return friendsStorage.getFriends(userId);
     }
 
     public boolean removeFriend(Long userId, Long friendId) {
-        initiateCheck(userId);
-        initiateCheck(friendId);
-        friendsMap.get(userId).remove(friendId);
-        friendsMap.get(friendId).remove(userId);
-        return true;
-    }
-
-    public List<Long> getAllFriends(Long userId) {
-        initiateCheck(userId);
-        return friendsMap.get(userId);
+        if (this.getUser(userId) == null || this.getUser(friendId) == null)
+            throw new UserNotFoundException();
+        return friendsStorage.removeFriend(userId, friendId);
     }
 
     public List<User> getCommonFriends(Long userId, Long otherId) {
-        initiateCheck(userId);
-        initiateCheck(otherId);
-        return friendsMap.get(userId).stream()
-                .filter((x) -> friendsMap.get(otherId).contains(x))
-                .map(storage::getUser)
-                .collect(Collectors.toList());
-    }
-
-    private void initiateCheck(Long id) {
-        if (!friendsMap.containsKey(id))
-            friendsMap.put(id, new ArrayList<>());
+        if (this.getUser(userId) == null || this.getUser(otherId) == null)
+            throw new UserNotFoundException();
+        return friendsStorage.getCommonFriends(userId, otherId);
     }
 }
