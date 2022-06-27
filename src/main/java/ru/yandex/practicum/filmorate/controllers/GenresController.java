@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.GenreService;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,22 +17,22 @@ import java.util.Optional;
 @Slf4j
 @RequestMapping("/genres")
 public class GenresController {
-    private final FilmService filmService;
+    private final GenreService genreService;
 
     @Autowired
-    public GenresController(FilmService filmService) {
-        this.filmService = filmService;
+    public GenresController(GenreService genreService) {
+        this.genreService = genreService;
     }
 
     @GetMapping()
     public List<Genre> getAllGenres() {
         log.info("Выполнен запрос getAllGenres.");
-        return filmService.getAllGenres();
+        return genreService.getAllGenres();
     }
 
     @GetMapping("/{id}")
     public Genre getGenre(@PathVariable Optional<Long> id) {
-        Genre genre = filmService.getGenre(id.orElseThrow(() -> new ValidationException("id")));
+        Genre genre = genreService.getGenre(id.orElseThrow(() -> new ValidationException("id")));
         log.info("Выполнен запрос getGenre.");
         return genre;
     }

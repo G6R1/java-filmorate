@@ -32,14 +32,38 @@ public class FilmService {
     //работа с сохранением/изменением фильмов
 
     public List<Film> getAllFilms() {
-        return filmStorage.getAllFilms();
+
+        List<Film> filmsWithoutGenres= filmStorage.getAllFilms();
+        Map<Long, Set<Genre>> genreMap = genreStorage.getMapFilmIdSetGenre();
+        List<Film> filmWithGenres = new ArrayList<>();
+
+        for (Film film : filmsWithoutGenres) {
+            filmWithGenres.add(new Film(film.getId(),
+                    film.getName(),
+                    film.getDescription(),
+                    film.getReleaseDate(),
+                    film.getDuration(),
+                    film.getMpa(),
+                    genreMap.getOrDefault(film.getId(), null)));
+        }
+
+
+        return filmWithGenres;
     }
 
     public Film getFilm(Long id) {
+        Map<Long, Set<Genre>> genreMap = genreStorage.getMapFilmIdSetGenreWithIdFilter(id);
         Film film = filmStorage.getFilm(id);
         if (film == null)
             throw new FilmNotFoundException();
-        return film;
+
+        return new Film(film.getId(),
+                film.getName(),
+                film.getDescription(),
+                film.getReleaseDate(),
+                film.getDuration(),
+                film.getMpa(),
+                genreMap.get(film.getId()));
     }
 
     public Film create(Film film) {
@@ -102,7 +126,7 @@ public class FilmService {
         return likeStorage.getFilmsWithMostLikes(num);
     }
 
-    //рейтинг/жанры
+    //рейтинг
 
     public RatingMPA getMpa(Long ratingId) {
         if (ratingId < 1 || ratingId > 5)
@@ -112,15 +136,5 @@ public class FilmService {
 
     public List<RatingMPA> getAllMpa() {
         return filmStorage.getAllMpa();
-    }
-
-    public Genre getGenre(Long genreId) {
-        if (genreId < 1 || genreId > 6)
-            throw new NotFoundException("Genre");
-        return genreStorage.getGenre(genreId);
-    }
-
-    public List<Genre> getAllGenres() {
-        return genreStorage.getAllGenres();
     }
 }

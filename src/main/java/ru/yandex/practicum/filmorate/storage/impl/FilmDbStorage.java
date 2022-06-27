@@ -22,12 +22,10 @@ import java.util.stream.Collectors;
 @Primary
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
-    private final GenreStorage genreStorage;
 
     @Autowired
-    public FilmDbStorage(JdbcTemplate jdbcTemplate, GenreStorage genreStorage) {
+    public FilmDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        this.genreStorage = genreStorage;
     }
 
     @Override
@@ -36,22 +34,8 @@ public class FilmDbStorage implements FilmStorage {
                 "f.rating_id as frating_id, rm.name as rmname " +
                 "from films as f join rating_mpa as rm on f.rating_id = rm.rating_id";
 
-        List<Film> films = jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs));
-
-        Map<Long, Set<Genre>> genreMap = genreStorage.getMapFilmIdSetGenre();
-
-        List<Film> filmWithGenres = new ArrayList<>();
-        for (Film film : films) {
-            filmWithGenres.add(new Film(film.getId(),
-                    film.getName(),
-                    film.getDescription(),
-                    film.getReleaseDate(),
-                    film.getDuration(),
-                    film.getMpa(),
-                    genreMap.getOrDefault(film.getId(), null)));
-        }
-
-        return filmWithGenres;
+        //объекты Film без жанров
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs));
     }
 
     /**
@@ -78,20 +62,17 @@ public class FilmDbStorage implements FilmStorage {
 
         SqlRowSet filmRowSet = jdbcTemplate.queryForRowSet(sql, id);
 
-        Map<Long, Set<Genre>> genreMap = genreStorage.getMapFilmIdSetGenreWithIdFilter(id);
-
         if (filmRowSet.next()) {
-            Film film = new Film(
+            ////объект Film без жанров
+            return new Film(
                     filmRowSet.getLong("film_id"),
                     filmRowSet.getString("FNAME"),
                     filmRowSet.getString("description"),
                     filmRowSet.getDate("releaseDate").toLocalDate(),
                     filmRowSet.getInt("duration"),
                     new RatingMPA(filmRowSet.getLong("FRATING_ID"), filmRowSet.getString("RMNAME")),
-                    genreMap.getOrDefault(filmRowSet.getLong("film_id"), null)
+                    null
             );
-
-            return film;
         } else {
             return null;
         }
