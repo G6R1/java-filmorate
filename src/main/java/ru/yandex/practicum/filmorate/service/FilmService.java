@@ -52,18 +52,18 @@ public class FilmService {
     }
 
     public Film getFilm(Long id) {
-        Map<Long, Set<Genre>> genreMap = genreStorage.getMapFilmIdSetGenreWithIdFilter(id);
         Film film = filmStorage.getFilm(id);
+        Map<Long, Set<Genre>> genreMap = genreStorage.getMapFilmIdSetGenreWithIdFilter(id);
         if (film == null)
             throw new FilmNotFoundException();
 
-        return new Film(film.getId(),
+        return new Film(id,
                 film.getName(),
                 film.getDescription(),
                 film.getReleaseDate(),
                 film.getDuration(),
                 film.getMpa(),
-                genreMap.get(film.getId()));
+                genreMap.get(id));
     }
 
     public Film create(Film film) {
@@ -71,7 +71,8 @@ public class FilmService {
             throw new FilmValidationException("id");
 
         filmValidation(film);
-        return filmStorage.create(film);
+
+        return getFilm(filmStorage.create(film).getId());
     }
 
     public Film update(Film film) {
@@ -82,7 +83,21 @@ public class FilmService {
             throw new FilmNotFoundException();
 
         filmValidation(film);
-        return filmStorage.update(film);
+
+        Film filmForGenreCheck = getFilm(filmStorage.update(film).getId());
+        //[] = [] null = null
+        if (film.getGenres() != null) {
+            if (film.getGenres().isEmpty()) {
+                return new Film(filmForGenreCheck.getId(),
+                        filmForGenreCheck.getName(),
+                        filmForGenreCheck.getDescription(),
+                        filmForGenreCheck.getReleaseDate(),
+                        filmForGenreCheck.getDuration(),
+                        filmForGenreCheck.getMpa(),
+                        new HashSet<Genre>());
+            }
+        }
+        return filmForGenreCheck;
     }
 
     /**
