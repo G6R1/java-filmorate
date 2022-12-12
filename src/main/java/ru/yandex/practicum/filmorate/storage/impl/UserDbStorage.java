@@ -30,9 +30,6 @@ public class UserDbStorage implements UserStorage {
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs));
     }
 
-    /**
-     * Маппер
-     */
     protected static User makeUser(ResultSet rs) throws SQLException {
         Long id = rs.getLong("user_id");
         String email = rs.getString("email");
@@ -73,12 +70,6 @@ public class UserDbStorage implements UserStorage {
         return getUser(id);
     }
 
-    /**
-     * Для работы метода SimpleJdbcInsert.executeAndReturnKey
-     *
-     * @param user
-     * @return
-     */
     protected static Map<String, Object> toMap(User user) {
         Map<String, Object> values = new HashMap<>();
         values.put("email", user.getEmail());

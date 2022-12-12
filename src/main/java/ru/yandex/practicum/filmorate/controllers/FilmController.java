@@ -66,4 +66,11 @@ public class FilmController {
         log.info("Выполнен запрос getFilmsWithMostLikes.");
         return list;
     }
+
+    @GetMapping("/friends")
+    public List<Film> getFilmsWithFriendsLikes(@RequestParam Long id) {
+        List<Film> list = filmService.getFilmsWithFriendsLikes(id);
+        log.info("Выполнен запрос getFilmsWithFriendsLikes.");
+        return list;
+    }
 }

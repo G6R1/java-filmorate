@@ -60,8 +60,6 @@ public class FriendsDbStorage implements FriendsStorage {
                 "join users as u on f.friend_id = u.user_id " +
                 "where f.user_id = ?";
 
-// тут теперь всегда вывадает одно и то же, параметр ? = 1 должн быть
-
         return jdbcTemplate.query(sql, (rs, rowNum) -> UserDbStorage.makeUser(rs), userId);
     }
 
