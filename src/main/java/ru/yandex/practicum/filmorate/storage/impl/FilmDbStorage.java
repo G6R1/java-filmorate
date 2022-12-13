@@ -34,7 +34,6 @@ public class FilmDbStorage implements FilmStorage {
                 "f.rating_id as frating_id, rm.name as rmname " +
                 "from films as f join rating_mpa as rm on f.rating_id = rm.rating_id";
 
-        //объекты Film без жанров
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeFilm(rs));
     }
 
@@ -63,7 +62,6 @@ public class FilmDbStorage implements FilmStorage {
         SqlRowSet filmRowSet = jdbcTemplate.queryForRowSet(sql, id);
 
         if (filmRowSet.next()) {
-            ////объект Film без жанров
             return new Film(
                     filmRowSet.getLong("film_id"),
                     filmRowSet.getString("FNAME"),
@@ -71,7 +69,7 @@ public class FilmDbStorage implements FilmStorage {
                     filmRowSet.getDate("releaseDate").toLocalDate(),
                     filmRowSet.getInt("duration"),
                     new RatingMPA(filmRowSet.getLong("FRATING_ID"), filmRowSet.getString("RMNAME")),
-                    null
+                    Collections.emptySet()
             );
         } else {
             return null;
@@ -99,7 +97,6 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film update(Film film) {
-        //обновляет таблицу films
         String sql = "update films set name = ?, description = ?, releasedate = ?, duration = ?, rating_id = ? " +
                 "where film_id = ?";
         jdbcTemplate.update(sql,
@@ -110,7 +107,6 @@ public class FilmDbStorage implements FilmStorage {
                 film.getMpa().getId(),
                 film.getId());
 
-        //обновляет таблицу genres
         Set<Long> newGenres = new HashSet<>();
         if (film.getGenres() != null)
             newGenres = film.getGenres().stream().map(Genre::getId).collect(Collectors.toSet());
@@ -137,12 +133,6 @@ public class FilmDbStorage implements FilmStorage {
         return getFilm(film.getId());
     }
 
-    /**
-     * Для работы метода SimpleJdbcInsert.executeAndReturnKey
-     *
-     * @param film
-     * @return
-     */
     private Map<String, Object> toMap(Film film) {
         Map<String, Object> values = new HashMap<>();
         values.put("name", film.getName());
@@ -175,9 +165,6 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeRatingMPA(rs));
     }
 
-    /**
-     * Маппер
-     */
     private RatingMPA makeRatingMPA(ResultSet rs) throws SQLException {
         Long id = rs.getLong("rating_id");
         String name = rs.getString("name");

@@ -11,4 +11,6 @@ public interface LikeStorage {
     boolean removeLike(Long filmId, Long userId);
 
     List<Film> getFilmsWithMostLikes(Integer num);
+
+    List<Film> getFilmsWithFriendsLikes(Long userId);
 }

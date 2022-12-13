@@ -55,4 +55,22 @@ public class LikeDbStorage implements LikeStorage {
 
         return list;
     }
+
+    @Override
+    public List<Film> getFilmsWithFriendsLikes(Long userId) {
+        String friendsIds = "select friend_id from friends " +
+                "where user_id = ?";
+
+        String sql = "select distinct film_id from likes " +
+                "where user_id in (" + friendsIds + ")";
+        SqlRowSet filmsRows = jdbcTemplate.queryForRowSet(sql, userId);
+
+        List films = new ArrayList<>();
+
+        while (filmsRows.next()) {
+            films.add(filmStorage.getFilm(filmsRows.getLong("film_id")));
+        }
+
+        return films;
+    }
 }

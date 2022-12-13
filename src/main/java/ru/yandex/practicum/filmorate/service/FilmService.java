@@ -44,7 +44,7 @@ public class FilmService {
                     film.getReleaseDate(),
                     film.getDuration(),
                     film.getMpa(),
-                    genreMap.getOrDefault(film.getId(), null)));
+                    genreMap.getOrDefault(film.getId(), Collections.emptySet())));
         }
 
 
@@ -53,9 +53,10 @@ public class FilmService {
 
     public Film getFilm(Long id) {
         Film film = filmStorage.getFilm(id);
-        Map<Long, Set<Genre>> genreMap = genreStorage.getMapFilmIdSetGenreWithIdFilter(id);
         if (film == null)
             throw new FilmNotFoundException();
+
+        Map<Long, Set<Genre>> genreMap = genreStorage.getMapFilmIdSetGenreWithIdFilter(id);
 
         return new Film(id,
                 film.getName(),
@@ -63,7 +64,7 @@ public class FilmService {
                 film.getReleaseDate(),
                 film.getDuration(),
                 film.getMpa(),
-                genreMap.get(id));
+                genreMap.getOrDefault(id, Collections.emptySet()));
     }
 
     public Film create(Film film) {
@@ -85,7 +86,7 @@ public class FilmService {
         filmValidation(film);
 
         Film filmForGenreCheck = getFilm(filmStorage.update(film).getId());
-        //[] = [] null = null
+
         if (film.getGenres() != null) {
             if (film.getGenres().isEmpty()) {
                 return new Film(filmForGenreCheck.getId(),
@@ -135,6 +136,10 @@ public class FilmService {
             throw new UserNotFoundException();
 
         return likeStorage.removeLike(filmId, userId);
+    }
+
+    public List<Film> getFilmsWithFriendsLikes(Long userId) {
+        return likeStorage.getFilmsWithFriendsLikes(userId);
     }
 
     public List<Film> getFilmsWithMostLikes(Integer num) {

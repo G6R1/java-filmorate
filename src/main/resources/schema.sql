@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS rating_MPA, genres, films, film_genres, users, friends, likes;
+
 CREATE TABLE IF NOT EXISTS rating_MPA (
                        rating_id INTEGER PRIMARY KEY,
                        name varchar(5) NOT NULL
@@ -14,13 +16,13 @@ CREATE TABLE IF NOT EXISTS films (
                        description varchar(200),
                        releaseDate date,
                        duration integer,
-                       rating_id integer REFERENCES rating_MPA (rating_id),
+                       rating_id integer REFERENCES rating_MPA (rating_id) ON DELETE CASCADE,
                        likes_counter integer default '0'
 );
 
 CREATE TABLE IF NOT EXISTS film_genres (
-                       film_id INTEGER REFERENCES films (film_id),
-                       genre_id INTEGER REFERENCES genres (genre_id),
+                       film_id INTEGER REFERENCES films (film_id) ON DELETE CASCADE,
+                       genre_id INTEGER REFERENCES genres (genre_id) ON DELETE CASCADE,
                        CONSTRAINT pkFilmGenres PRIMARY KEY (film_id, genre_id)
 );
 
@@ -33,14 +35,14 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS friends (
-                       user_id INTEGER REFERENCES users (user_id),
-                       friend_id INTEGER REFERENCES users (user_id),
+                       user_id INTEGER REFERENCES users (user_id) ON DELETE CASCADE,
+                       friend_id INTEGER REFERENCES users (user_id) ON DELETE CASCADE,
                        friendship_status varchar(20),
                        CONSTRAINT pkFriends PRIMARY KEY (user_id, friend_id)
 );
 
 CREATE TABLE IF NOT EXISTS likes (
-                       film_id INTEGER REFERENCES films (film_id),
-                       user_id INTEGER REFERENCES users (user_id),
+                       film_id INTEGER REFERENCES films (film_id) ON DELETE CASCADE,
+                       user_id INTEGER REFERENCES users (user_id) ON DELETE CASCADE,
                        CONSTRAINT pkLikes PRIMARY KEY (film_id, user_id)
 );

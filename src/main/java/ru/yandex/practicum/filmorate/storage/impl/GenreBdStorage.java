@@ -40,9 +40,6 @@ public class GenreBdStorage implements GenreStorage {
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeGenre(rs));
     }
 
-    /**
-     * Маппер
-     */
     private Genre makeGenre(ResultSet rs) throws SQLException {
         Long id = rs.getLong("genre_id");
         String name = rs.getString("name");
